@@ -4,67 +4,78 @@ let gameState = {
     skipped: 0,
     timeLeft: 60,
     isPlaying: false,
-    currentWord: null,
-    usedWords: [],
-    timerInterval: null
+    currentCharacter: null,
+    usedCharacters: [],
+    timerInterval: null,
+    imageCache: {}
 };
 
-// Default word database
-const defaultWords = {
-    easy: [
-        "Brushing teeth", "Eating pizza", "Drinking water", "Sleeping",
-        "Running", "Dancing", "Swimming", "Reading a book",
-        "Watching TV", "Playing video games", "Washing hands", "Combing hair",
-        "Walking a dog", "Riding a bike", "Cooking", "Driving a car"
-    ],
-    medium: [
-        "Playing guitar", "Doing yoga", "Taking a selfie", "Texting",
-        "Shopping", "Painting a picture", "Playing basketball", "Singing opera",
-        "Surfing", "Rock climbing", "Playing chess", "Baking a cake",
-        "Gardening", "Playing drums", "Skiing", "Ice skating"
-    ],
-    hard: [
-        "Tightrope walking", "Conducting an orchestra", "Defusing a bomb",
-        "Performing surgery", "Bullfighting", "Breakdancing", "Juggling fire",
-        "Trapeze artist", "Mime in a box", "Walking like a crab",
-        "Robot malfunction", "Astronaut in zero gravity", "Possessed by a ghost",
-        "Slipping on a banana peel", "Stuck in quicksand", "Zombie apocalypse"
-    ]
-};
-
-// Initialize words from localStorage or use defaults
-function getWords() {
-    const stored = localStorage.getItem('charadeWords');
-    return stored ? JSON.parse(stored) : defaultWords;
+// Get characters from localStorage or use defaults from characters.js
+function getCharacters() {
+    const stored = localStorage.getItem('charadeCharacters');
+    return stored ? JSON.parse(stored) : animeCharacters;
 }
 
-function saveWords(words) {
-    localStorage.setItem('charadeWords', JSON.stringify(words));
+function saveCharacters(characters) {
+    localStorage.setItem('charadeCharacters', JSON.stringify(characters));
 }
 
-// Get random word based on difficulty
-function getRandomWord(difficulty) {
-    const words = getWords();
-    let wordPool = [];
+// Fetch character image from anime API or use placeholder
+async function fetchCharacterImage(characterName, animeName) {
+    // Check cache first
+    const cacheKey = `${characterName}-${animeName}`;
+    if (gameState.imageCache[cacheKey]) {
+        return gameState.imageCache[cacheKey];
+    }
+
+    try {
+        // Try to fetch from Jikan API (MyAnimeList)
+        const searchQuery = encodeURIComponent(characterName);
+        const response = await fetch(`https://api.jikan.moe/v4/characters?q=${searchQuery}&limit=1`);
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data.data && data.data.length > 0) {
+                const imageUrl = data.data[0].images.jpg.image_url;
+                gameState.imageCache[cacheKey] = imageUrl;
+                return imageUrl;
+            }
+        }
+    } catch (error) {
+        console.log('Could not fetch image:', error);
+    }
+
+    // Return placeholder if API fails
+    const placeholder = `https://ui-avatars.com/api/?name=${encodeURIComponent(characterName)}&size=300&background=667eea&color=fff&bold=true`;
+    gameState.imageCache[cacheKey] = placeholder;
+    return placeholder;
+}
+
+// Get random character based on difficulty
+function getRandomCharacter(difficulty) {
+    const characters = getCharacters();
+    let characterPool = [];
 
     if (difficulty === 'all') {
-        wordPool = [...words.easy, ...words.medium, ...words.hard];
+        characterPool = [...characters.easy, ...characters.medium, ...characters.hard];
     } else {
-        wordPool = words[difficulty] || [];
+        characterPool = characters[difficulty] || [];
     }
 
-    // Filter out used words
-    const availableWords = wordPool.filter(word => !gameState.usedWords.includes(word));
+    // Filter out used characters
+    const availableCharacters = characterPool.filter(char => 
+        !gameState.usedCharacters.some(used => used.name === char.name && used.anime === char.anime)
+    );
 
-    // If all words used, reset
-    if (availableWords.length === 0) {
-        gameState.usedWords = [];
-        return wordPool[Math.floor(Math.random() * wordPool.length)];
+    // If all characters used, reset
+    if (availableCharacters.length === 0) {
+        gameState.usedCharacters = [];
+        return characterPool[Math.floor(Math.random() * characterPool.length)];
     }
 
-    const randomWord = availableWords[Math.floor(Math.random() * availableWords.length)];
-    gameState.usedWords.push(randomWord);
-    return randomWord;
+    const randomCharacter = availableCharacters[Math.floor(Math.random() * availableCharacters.length)];
+    gameState.usedCharacters.push(randomCharacter);
+    return randomCharacter;
 }
 
 // Timer function
@@ -88,12 +99,37 @@ function stopTimer() {
     }
 }
 
-// Display word
-function showWord() {
+// Display character with image
+async function showCharacter() {
     const difficulty = document.getElementById('difficulty').value;
-    const word = getRandomWord(difficulty);
-    gameState.currentWord = word;
-    document.getElementById('wordDisplay').textContent = word;
+    const character = getRandomCharacter(difficulty);
+    gameState.currentCharacter = character;
+    
+    // Update character name
+    document.getElementById('wordDisplay').textContent = character.name;
+    document.getElementById('animeTitle').textContent = `from ${character.anime}`;
+    
+    // Show loader and hide image initially
+    const imgElement = document.getElementById('charImg');
+    const loaderElement = document.getElementById('imageLoader');
+    imgElement.style.display = 'none';
+    loaderElement.style.display = 'block';
+    
+    // Fetch and display image
+    try {
+        const imageUrl = await fetchCharacterImage(character.name, character.anime);
+        imgElement.src = imageUrl;
+        imgElement.onload = () => {
+            loaderElement.style.display = 'none';
+            imgElement.style.display = 'block';
+        };
+        imgElement.onerror = () => {
+            loaderElement.style.display = 'none';
+            // Keep image hidden if it fails to load
+        };
+    } catch (error) {
+        loaderElement.style.display = 'none';
+    }
 }
 
 // Start game
@@ -106,7 +142,7 @@ function startGame() {
     gameState.skipped = 0;
     gameState.timeLeft = timeLimit;
     gameState.isPlaying = true;
-    gameState.usedWords = [];
+    gameState.usedCharacters = [];
 
     // Update UI
     document.getElementById('score').textContent = '0';
@@ -120,27 +156,27 @@ function startGame() {
     document.getElementById('difficulty').disabled = true;
     timeLimitInput.disabled = true;
 
-    // Show first word and start timer
-    showWord();
+    // Show first character and start timer
+    showCharacter();
     startTimer();
 }
 
-// Next word (correct)
-function nextWord() {
+// Next character (correct)
+function nextCharacter() {
     if (!gameState.isPlaying) return;
 
     gameState.score++;
     document.getElementById('score').textContent = gameState.score;
-    showWord();
+    showCharacter();
 }
 
-// Skip word
-function skipWord() {
+// Skip character
+function skipCharacter() {
     if (!gameState.isPlaying) return;
 
     gameState.skipped++;
     document.getElementById('skipped').textContent = gameState.skipped;
-    showWord();
+    showCharacter();
 }
 
 // End game
@@ -170,6 +206,9 @@ function playAgain() {
 
     // Reset display
     document.getElementById('wordDisplay').textContent = 'Click "Start" to begin!';
+    document.getElementById('animeTitle').textContent = '';
+    document.getElementById('charImg').style.display = 'none';
+    document.getElementById('imageLoader').style.display = 'none';
 
     // Switch screens
     document.getElementById('gameOverScreen').classList.remove('active');
@@ -179,8 +218,8 @@ function playAgain() {
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('startBtn').addEventListener('click', startGame);
-    document.getElementById('nextBtn').addEventListener('click', nextWord);
-    document.getElementById('skipBtn').addEventListener('click', skipWord);
+    document.getElementById('nextBtn').addEventListener('click', nextCharacter);
+    document.getElementById('skipBtn').addEventListener('click', skipCharacter);
     document.getElementById('playAgainBtn').addEventListener('click', playAgain);
 
     // Keyboard shortcuts
@@ -189,10 +228,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (e.code === 'Space' || e.code === 'Enter') {
             e.preventDefault();
-            nextWord();
+            nextCharacter();
         } else if (e.code === 'ArrowRight') {
             e.preventDefault();
-            skipWord();
+            skipCharacter();
         }
     });
 });
