@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel - Ani-Charades</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎯 Admin Panel</h1>
+            <p class="subtitle">Manage charades words and categories</p>
+        </header>
+
+        <div class="admin-section">
+            <h2>Add New Word</h2>
+            <div class="form-group">
+                <label for="newWord">Word/Phrase:</label>
+                <input type="text" id="newWord" placeholder="e.g., Playing guitar">
+            </div>
+            <div class="form-group">
+                <label for="category">Difficulty:</label>
+                <select id="category">
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                </select>
+            </div>
+            <button id="addWordBtn" class="btn btn-primary">Add Word</button>
+        </div>
+
+        <div class="admin-section">
+            <h2>Current Words</h2>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="easy">Easy</button>
+                <button class="filter-btn" data-filter="medium">Medium</button>
+                <button class="filter-btn" data-filter="hard">Hard</button>
+            </div>
+            <div id="wordsList" class="words-list"></div>
+        </div>
+
+        <div class="admin-section">
+            <h2>Data Management</h2>
+            <button id="exportBtn" class="btn btn-secondary">Export Words (JSON)</button>
+            <button id="importBtn" class="btn btn-secondary">Import Words</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;">
+            <button id="resetBtn" class="btn btn-danger">Reset to Default</button>
+        </div>
+
+        <footer>
+            <a href="index.html" class="admin-link">← Back to Game</a>
+        </footer>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

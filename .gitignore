@@ -1,4 +1,14 @@
-# These files are intentionally tracked
-# All game files should be deployed to GitHub Pages
-*
-!.gitignore
+# Node modules (if you add them later)
+node_modules/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log

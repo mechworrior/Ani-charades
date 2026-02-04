@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ani-Charades - Guess the Action!</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎭 Ani-Charades</h1>
+            <p class="subtitle">Act it out, guess it right!</p>
+        </header>
+
+        <div id="gameScreen" class="screen active">
+            <div class="card">
+                <div id="wordDisplay" class="word-display">
+                    Click "Start" to begin!
+                </div>
+            </div>
+
+            <div class="controls">
+                <button id="startBtn" class="btn btn-primary">Start Game</button>
+                <button id="nextBtn" class="btn btn-secondary" disabled>Next Word</button>
+                <button id="skipBtn" class="btn btn-tertiary" disabled>Skip</button>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Score:</span>
+                    <span id="score" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Skipped:</span>
+                    <span id="skipped" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Time:</span>
+                    <span id="timer" class="stat-value">60</span>
+                </div>
+            </div>
+
+            <div class="settings">
+                <label for="difficulty">Difficulty:</label>
+                <select id="difficulty">
+                    <option value="easy">Easy</option>
+                    <option value="medium" selected>Medium</option>
+                    <option value="hard">Hard</option>
+                    <option value="all">All Mixed</option>
+                </select>
+                
+                <label for="timeLimit">Time (seconds):</label>
+                <input type="number" id="timeLimit" value="60" min="30" max="300" step="10">
+            </div>
+        </div>
+
+        <div id="gameOverScreen" class="screen">
+            <div class="game-over">
+                <h2>Game Over!</h2>
+                <p class="final-score">Final Score: <span id="finalScore">0</span></p>
+                <p class="final-skipped">Words Skipped: <span id="finalSkipped">0</span></p>
+                <button id="playAgainBtn" class="btn btn-primary">Play Again</button>
+            </div>
+        </div>
+
+        <footer>
+            <a href="admin.html" class="admin-link">Admin Panel</a>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
