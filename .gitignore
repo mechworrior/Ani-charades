@@ -1,0 +1,4 @@
+# These files are intentionally tracked
+# All game files should be deployed to GitHub Pages
+*
+!.gitignore
