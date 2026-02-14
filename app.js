@@ -6,8 +6,7 @@ let gameState = {
     isPlaying: false,
     currentCharacter: null,
     usedCharacters: [],
-    timerInterval: null,
-    imageCache: {}
+    timerInterval: null
 };
 
 // Get characters from localStorage or use defaults from characters.js
@@ -18,37 +17,6 @@ function getCharacters() {
 
 function saveCharacters(characters) {
     localStorage.setItem('charadeCharacters', JSON.stringify(characters));
-}
-
-// Fetch character image from anime API or use placeholder
-async function fetchCharacterImage(characterName, animeName) {
-    // Check cache first
-    const cacheKey = `${characterName}-${animeName}`;
-    if (gameState.imageCache[cacheKey]) {
-        return gameState.imageCache[cacheKey];
-    }
-
-    try {
-        // Try to fetch from Jikan API (MyAnimeList)
-        const searchQuery = encodeURIComponent(characterName);
-        const response = await fetch(`https://api.jikan.moe/v4/characters?q=${searchQuery}&limit=1`);
-        
-        if (response.ok) {
-            const data = await response.json();
-            if (data.data && data.data.length > 0) {
-                const imageUrl = data.data[0].images.jpg.image_url;
-                gameState.imageCache[cacheKey] = imageUrl;
-                return imageUrl;
-            }
-        }
-    } catch (error) {
-        console.log('Could not fetch image:', error);
-    }
-
-    // Return placeholder if API fails
-    const placeholder = `https://ui-avatars.com/api/?name=${encodeURIComponent(characterName)}&size=300&background=667eea&color=fff&bold=true`;
-    gameState.imageCache[cacheKey] = placeholder;
-    return placeholder;
 }
 
 // Get random character based on difficulty
@@ -99,37 +67,15 @@ function stopTimer() {
     }
 }
 
-// Display character with image
-async function showCharacter() {
+// Display character
+function showCharacter() {
     const difficulty = document.getElementById('difficulty').value;
     const character = getRandomCharacter(difficulty);
     gameState.currentCharacter = character;
     
-    // Update character name
+    // Update character name and anime
     document.getElementById('wordDisplay').textContent = character.name;
     document.getElementById('animeTitle').textContent = `from ${character.anime}`;
-    
-    // Show loader and hide image initially
-    const imgElement = document.getElementById('charImg');
-    const loaderElement = document.getElementById('imageLoader');
-    imgElement.style.display = 'none';
-    loaderElement.style.display = 'block';
-    
-    // Fetch and display image
-    try {
-        const imageUrl = await fetchCharacterImage(character.name, character.anime);
-        imgElement.src = imageUrl;
-        imgElement.onload = () => {
-            loaderElement.style.display = 'none';
-            imgElement.style.display = 'block';
-        };
-        imgElement.onerror = () => {
-            loaderElement.style.display = 'none';
-            // Keep image hidden if it fails to load
-        };
-    } catch (error) {
-        loaderElement.style.display = 'none';
-    }
 }
 
 // Start game
@@ -207,8 +153,6 @@ function playAgain() {
     // Reset display
     document.getElementById('wordDisplay').textContent = 'Click "Start" to begin!';
     document.getElementById('animeTitle').textContent = '';
-    document.getElementById('charImg').style.display = 'none';
-    document.getElementById('imageLoader').style.display = 'none';
 
     // Switch screens
     document.getElementById('gameOverScreen').classList.remove('active');
