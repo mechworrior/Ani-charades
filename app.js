@@ -99,6 +99,7 @@ function startGame() {
     document.getElementById('startBtn').disabled = true;
     document.getElementById('nextBtn').disabled = false;
     document.getElementById('skipBtn').disabled = false;
+    document.getElementById('stopBtn').disabled = false;
     document.getElementById('difficulty').disabled = true;
     timeLimitInput.disabled = true;
 
@@ -134,6 +135,11 @@ function endGame() {
     document.getElementById('finalScore').textContent = gameState.score;
     document.getElementById('finalSkipped').textContent = gameState.skipped;
 
+    // Disable game buttons
+    document.getElementById('nextBtn').disabled = true;
+    document.getElementById('skipBtn').disabled = true;
+    document.getElementById('stopBtn').disabled = true;
+
     // Switch screens
     document.getElementById('gameScreen').classList.remove('active');
     document.getElementById('gameOverScreen').classList.add('active');
@@ -149,6 +155,7 @@ function playAgain() {
     document.getElementById('startBtn').disabled = false;
     document.getElementById('nextBtn').disabled = true;
     document.getElementById('skipBtn').disabled = true;
+    document.getElementById('stopBtn').disabled = true;
 
     // Reset display
     document.getElementById('wordDisplay').textContent = 'Click "Start" to begin!';
@@ -159,11 +166,21 @@ function playAgain() {
     document.getElementById('gameScreen').classList.add('active');
 }
 
+// Stop game manually
+function stopGame() {
+    if (!gameState.isPlaying) return;
+    
+    if (confirm('Are you sure you want to stop the game?')) {
+        endGame();
+    }
+}
+
 // Event listeners
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('startBtn').addEventListener('click', startGame);
     document.getElementById('nextBtn').addEventListener('click', nextCharacter);
     document.getElementById('skipBtn').addEventListener('click', skipCharacter);
+    document.getElementById('stopBtn').addEventListener('click', stopGame);
     document.getElementById('playAgainBtn').addEventListener('click', playAgain);
 
     // Keyboard shortcuts
